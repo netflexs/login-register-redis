@@ -2,37 +2,33 @@ import redis
 
 #connect to redis database
 r = redis.Redis(
-  host='example.com',
+  host='example.redis.host',
   port=13475,
   username='####',
-  password='####')
+  password='#####')
 
 # choice login or register
-while True:
-    print("1. Login \n2. Register")
-    choice = input("Enter your choice (1 for Login, 2 for Register):  ")
+choice = input('Do you want to login or register ? ')
 
-    if choice == "1":
-        username = input("Enter username:  ")
-        password = input("Enter password:  ")
-        if r.exists(username):
-            if r.get(username).decode("utf-8") == password:
-                print("Login successful")
-                r.expire(username, 86400)
-                break
-            else:
-                print("Wrong username or password")
-        else:
-            print("Username not found")
-    elif choice == "2":
-        username = input("Enter username:  ")
-        password = input("Enter password:  ")
-        #Delete User After 1day
-        r.expire(username, 86400)
-        r.set(username, password)
-        print("Registration successful")
-        
-        break
+# Make Login And Register Session with user input
+if choice == 'Login' or choice == 'login':
+    username = input('Enter username : ')
+    password = input('Enter password : ')
+    if r.exists(username) and r.hget(username, 'password') == password:
+        print('Welcome ' + username)
     else:
-        print("Please enter a valid choice")
-        r.expire(username, 86400)
+        print('Username and password are incorrect. Please register')
+        choice = 'Register'
+
+if choice == 'Register' or choice == 'register':
+    username = input('Enter username : ')
+    if r.exists(username):
+        print('Username already exists. Please login')
+        choice = 'Login'
+    else:
+        password = input('Enter password : ')
+        r.hmset(username, {'password': password})
+        print('Registration Successful')
+
+# Delete registered User After 1 Day
+r.expire(username, 86400)
